@@ -1,5 +1,7 @@
 from tkinter import Tk, BOTH, Canvas
+from statistics import median
 
+### Creates graph cells to build the maze with
 class Cell:
     def __init__(self, win):
         self.has_left_wall = True
@@ -12,22 +14,37 @@ class Cell:
         self._y2 = None
         self._win = win
 
+### Draws lines between cells
+    def draw_move(self, to_cell, undo=False):
+        x_med = median([self._x1, self._x2])
+        y_med = median([self._y1, self._y2])
+        dest_x_med = median([to_cell._x1, to_cell._x2])
+        dest_y_med = median([to_cell._y1, to_cell._y2])
+
+        if undo:
+            self._win.draw_line(Line(Point(x_med, y_med), Point(dest_x_med, dest_y_med)), fill_colour='gray')
+        else:
+            self._win.draw_line(Line(Point(x_med, y_med), Point(dest_x_med, dest_y_med)), fill_colour='red')
+
+### Draws the cells
     def draw(self, x1, y1, x2, y2):
+        if self._win is None:
+            return
         self._x1 = x1
         self._y1 = y1
         self._x2 = x2
         self._y2 = y2
 
         if self.has_left_wall:
-            self.win.draw_line(Line(Point(self._x1, self._y1), Point(self._x1, self._y2)))
+            self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x1, self._y2)))
         if self.has_right_wall:
-            self.win.draw_line(Line(Point(self._x2, self._y1), Point(self._x2, self._y2)))
+            self._win.draw_line(Line(Point(self._x2, self._y1), Point(self._x2, self._y2)))
         if self.has_top_wall:
-            self.win.draw_line(Line(Point(self._x1, self._y1), Point(self._x2, self._y1)))
+            self._win.draw_line(Line(Point(self._x1, self._y1), Point(self._x2, self._y1)))
         if self.has_bottom_wall:
-            self.win.draw_line(Line(Point(self._x1, self._y2), Point(self._x2, self._y2)))
+            self._win.draw_line(Line(Point(self._x1, self._y2), Point(self._x2, self._y2)))
 
-
+### Creates the main window and line graphics for the program
 class Window:
     def __init__(self, width, height):
         self.width = width
