@@ -20,40 +20,66 @@ class Maze:
         self._create_cells()
         self._break_entrance_and_exit()
         self._break_walls_r(0, 0)
+        self._reset_cells_visited()
+
+### Solves the maze
+    def solve(self):
+        return self._solve_r(0, 0)
+
+    def _solve_r(self, i, j):
+        self._animate()
+        current_cell = self._cells[i][j]
+        current_cell.visited = True
+
+        if current_cell == self._cells[-1][-1]:
+            return True
+        
+        ## Left
+        if i > 0 and current_cell.has_left_wall == False and not self._cells[i - 1][j].visited:
+            current_cell.draw_move(self._cells[i - 1][j])
+            if self._solve_r(i-1, j):
+                return True
+            else:
+                current_cell.draw_move(self._cells[i - 1][j], True)
+        ## Right
+        if i + 1 < self.num_cols and current_cell.has_right_wall == False and not self._cells[i + 1][j].visited:
+            current_cell.draw_move(self._cells[i + 1][j])
+            if self._solve_r(i+1, j):
+                return True
+            else:
+                current_cell.draw_move(self._cells[i + 1][j], True)
+        ## Up
+        if j > 0 and current_cell.has_top_wall == False and not self._cells[i][j - 1].visited:
+            current_cell.draw_move(self._cells[i][j - 1])
+            if self._solve_r(i, j-1):
+                return True
+            else:
+                current_cell.draw_move(self._cells[i][j - 1], True)
+        ## Down
+        if j + 1 < self.num_rows and current_cell.has_bottom_wall == False and not self._cells[i][j + 1].visited:
+            current_cell.draw_move(self._cells[i][j + 1])
+            if self._solve_r(i, j+1):
+                return True
+            else:
+                current_cell.draw_move(self._cells[i][j + 1], True)
+        
 
 ### Breaks the walls in the maze to create paths
     def _break_walls_r(self, i, j):
         current_cell = self._cells[i][j]
         current_cell.visited = True
         while True:
-            ## Initializes adjacent cell values
             cells_to_visit = []
-            above_cell = None
-            beneath_cell = None
-            left_cell = None
-            right_cell = None
 
             ## Determines if adjacent cells exist and need to be visited
-            if i > 0:
-                if self._cells[i - 1][j]:
-                    above_cell = self._cells[i - 1][j]
-                    if above_cell.visited == False and above_cell not in cells_to_visit:
-                        cells_to_visit.append(above_cell)
-            if i < (len(self._cells) - 1):
-                if self._cells[i + 1][j]:
-                    beneath_cell = self._cells[i + 1][j]
-                    if beneath_cell.visited == False and beneath_cell not in cells_to_visit:
-                        cells_to_visit.append(beneath_cell)
-            if j > 0:
-                if self._cells[i][j - 1]:
-                    left_cell = self._cells[i][j - 1]
-                    if left_cell.visited == False and left_cell not in cells_to_visit:
-                        cells_to_visit.append(left_cell)
-            if j < (len(self._cells[i]) - 1):
-                if self._cells[i][j + 1]:
-                    right_cell = self._cells[i][j + 1]
-                    if right_cell.visited == False and right_cell not in cells_to_visit:
-                        cells_to_visit.append(right_cell)
+            if i > 0 and not self._cells[i - 1][j].visited:
+                cells_to_visit.append(("left", i-1, j))
+            if i < self.num_cols - 1 and not self._cells[i + 1][j].visited:
+                cells_to_visit.append(("right", i+1, j))
+            if j > 0 and not self._cells[i][j - 1].visited:
+                cells_to_visit.append(("above", i, j-1))
+            if j < self.num_rows - 1 and not self._cells[i][j + 1].visited:
+                cells_to_visit.append(("beneath", i, j+1))
             
             ## If no adjacent cells meet criteria, draw cell and return
             if len(cells_to_visit) == 0:
@@ -62,32 +88,31 @@ class Maze:
             
             ## Determines direction to recursively follow
             direction = random.randrange(len(cells_to_visit))
-            chosen_direction_cell = cells_to_visit[direction]
-            if chosen_direction_cell == above_cell:
-                current_cell.has_top_wall = False
-                chosen_direction_cell.has_bottom_wall = False
-                self._draw_cell(i, j)
-                self._draw_cell(i - 1, j)
-                self._break_walls_r(i - 1, j)
-            if chosen_direction_cell == beneath_cell:
-                current_cell.has_bottom_wall = False
-                chosen_direction_cell.has_top_wall = False
-                self._draw_cell(i, j)
-                self._draw_cell(i + 1, j)
-                self._break_walls_r(i + 1, j)
-            if chosen_direction_cell == left_cell:
+            chosen = cells_to_visit[direction]
+            if chosen[0] == "left":
                 current_cell.has_left_wall = False
-                chosen_direction_cell.has_right_wall = False
-                self._draw_cell(i, j)
-                self._draw_cell(i, j - 1)
-                self._break_walls_r(i, j - 1)
-            if chosen_direction_cell == right_cell:
+                self._cells[chosen[1]][chosen[2]].has_right_wall = False
+
+            if chosen[0] == "right":
                 current_cell.has_right_wall = False
-                chosen_direction_cell.has_left_wall = False
-                self._draw_cell(i, j)
-                self._draw_cell(i, j + 1)
-                self._break_walls_r(i, j + 1)
+                self._cells[chosen[1]][chosen[2]].has_left_wall = False
+
+            if chosen[0] == "above":
+                current_cell.has_top_wall = False
+                self._cells[chosen[1]][chosen[2]].has_bottom_wall = False
+
+            if chosen[0] == "beneath":
+                current_cell.has_bottom_wall = False
+                self._cells[chosen[1]][chosen[2]].has_top_wall = False
+
+            self._break_walls_r(chosen[1], chosen[2])
                 
+### Resets cell.visited property for maze traversal
+    def _reset_cells_visited(self):
+        for i in self._cells:
+            for cells in i:
+                cells.visited = False
+
 
 ### Breaks walls for entrance and exit to maze
     def _break_entrance_and_exit(self):

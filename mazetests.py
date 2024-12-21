@@ -23,5 +23,7 @@ class Tests(unittest.TestCase):
         self.assertFalse(entrance.has_top_wall)
         self.assertFalse(exit_cell.has_bottom_wall)
 
+
+
 if __name__ == "__main__":
     unittest.main()

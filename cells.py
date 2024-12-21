@@ -25,7 +25,7 @@ class Cell:
         fill_colour='red'
         if undo:
             fill_colour='gray'       
-        self._win.draw_line(Line(Point(x_med, y_med), Point(dest_x_med, dest_y_med)))
+        self._win.draw_line(Line(Point(x_med, y_med), Point(dest_x_med, dest_y_med)), fill_colour)
 
 ### Draws the cells
     def draw(self, x1, y1, x2, y2, fill_colour='white'):
